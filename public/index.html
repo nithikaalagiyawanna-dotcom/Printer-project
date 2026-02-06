@@ -196,110 +196,111 @@
         <button class="tab-btn" data-tab="custom">Custom</button>
       </div>
 
-      <form id="labelForm" method="post" action="/print" autocomplete="off">
-        <!-- Hidden fields for logo ZPL image -->
-        <input type="hidden" name="logoHex" id="logoHex" />
-        <input type="hidden" name="logoW"   id="logoW" />
-        <input type="hidden" name="logoH"   id="logoH" />
+      <!-- Replace the stray "/print" line with this proper form tag -->
+<form id="labelForm" method="post" action="/print">
+  <!-- Hidden fields for logo ZPL image -->
+  <input type="hidden" name="logoHex" id="logoHex" />
+  <input type="hidden" name="logoW"   id="logoW" />
+  <input type="hidden" name="logoH"   id="logoH" />
 
-        <div class="section" id="sec-basic">
-          <label>Sample Name</label>
-          <input name="sampleName" id="sampleName" placeholder="e.g., Sample A‑001" required />
+  <div class="section" id="sec-basic">
+    <label>Sample Name</label>
+    <input name="sampleName" id="sampleName" placeholder="e.g., Sample A‑001" required />
 
-          <div class="section">
-            <label>Price (or 2nd Line)</label>
-            <input name="price" id="price" placeholder="e.g., Rs. 250" />
-            <small class="muted">ASCII symbols supported: Rs., $, %, /, -</small>
-          </div>
+    <div class="section">
+      <label>Price (or 2nd Line)</label>
+      <input name="price" id="price" placeholder="e.g., Rs. 250" />
+      <small class="muted">ASCII symbols supported: Rs., $, %, /, -</small>
+    </div>
 
-          <div class="section">
-            <label>Notes (optional)</label>
-            <input name="notes" id="notes" placeholder="e.g., Lot 12 / 07‑Feb‑2026" />
-          </div>
+    <div class="section">
+      <label>Notes (optional)</label>
+      <input name="notes" id="notes" placeholder="e.g., Lot 12 / 07‑Feb‑2026" />
+    </div>
+  </div>
+
+  <div class="section grid-2">
+    <div>
+      <label>Barcode Value (optional)</label>
+      <input name="barcode" id="barcode" placeholder="e.g., 123456789012" />
+    </div>
+    <div>
+      <label>Barcode Type</label>
+      <select name="barcodeType" id="barcodeType">
+        <option value="code128">Code128</option>
+        <option value="qr">QR Code</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section grid-3">
+    <div>
+      <label>Main Font</label>
+      <input name="fontMain" id="fontMain" type="number" value="28" min="12" max="60" />
+    </div>
+    <div>
+      <label>Small Font</label>
+      <input name="fontSmall" id="fontSmall" type="number" value="22" min="10" max="40" />
+    </div>
+    <div>
+      <label>Rotate</label>
+      <select name="rotate" id="rotate">
+        <option value="N">0°</option>
+        <option value="R">90°</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Logo (optional)</label>
+    <div class="grid-2">
+      <input type="file" id="logoFile" accept="image/*" />
+      <div class="grid-2">
+        <div>
+          <label>Logo X (dots)</label>
+          <input id="logoX" type="number" value="300" min="0" max="406" />
         </div>
-
-        <div class="section grid-2">
-          <div>
-            <label>Barcode Value (optional)</label>
-            <input name="barcode" id="barcode" placeholder="e.g., 123456789012" />
-          </div>
-          <div>
-            <label>Barcode Type</label>
-            <select name="barcodeType" id="barcodeType">
-              <option value="code128">Code128</option>
-              <option value="qr">QR Code</option>
-            </select>
-          </div>
+        <div>
+          <label>Logo Y (dots)</label>
+          <input id="logoY" type="number" value="10" min="0" max="203" />
         </div>
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:10px;">
+      <div>
+        <label>Logo Width (dots)</label>
+        <input id="logoWidthDots" type="number" value="80" min="8" max="406" />
+      </div>
+      <div>
+        <label>Threshold</label>
+        <input id="logoThreshold" type="number" value="180" min="0" max="255" />
+      </div>
+      <div>
+        <label>Dither</label>
+        <select id="logoDither">
+          <option value="none">None</option>
+          <option value="bayer">Bayer</option>
+        </select>
+      </div>
+    </div>
+    <small class="muted">Logo is converted to 1‑bit and embedded into ZPL (^GFA). Adjust width & threshold for clarity.</small>
+  </div>
 
-        <div class="section grid-3">
-          <div>
-            <label>Main Font</label>
-            <input name="fontMain" id="fontMain" type="number" value="28" min="12" max="60" />
-          </div>
-          <div>
-            <label>Small Font</label>
-            <input name="fontSmall" id="fontSmall" type="number" value="22" min="10" max="40" />
-          </div>
-          <div>
-            <label>Rotate</label>
-            <select name="rotate" id="rotate">
-              <option value="N">0°</option>
-              <option value="R">90°</option>
-            </select>
-          </div>
-        </div>
+  <div class="section">
+    <label>Presets</label>
+    <div class="presets-row">
+      <input id="presetName" placeholder="Preset name (e.g., Sample‑Std)" />
+      <button type="button" class="ghost" id="savePresetBtn">Save</button>
+      <button type="button" class="ghost" id="deletePresetBtn">Delete</button>
+    </div>
+    <div class="presets">
+      <select id="presetSelect"></select>
+      <button type="button" class="ghost" id="loadPresetBtn">Load</button>
+    </div>
+  </div>
 
-        <div class="section">
-          <label>Logo (optional)</label>
-          <div class="grid-2">
-            <input type="file" id="logoFile" accept="image/*" />
-            <div class="grid-2">
-              <div>
-                <label>Logo X (dots)</label>
-                <input id="logoX" type="number" value="300" min="0" max="406" />
-              </div>
-              <div>
-                <label>Logo Y (dots)</label>
-                <input id="logoY" type="number" value="10" min="0" max="203" />
-              </div>
-            </div>
-          </div>
-          <div class="grid-3" style="margin-top:10px;">
-            <div>
-              <label>Logo Width (dots)</label>
-              <input id="logoWidthDots" type="number" value="80" min="8" max="406" />
-            </div>
-            <div>
-              <label>Threshold</label>
-              <input id="logoThreshold" type="number" value="180" min="0" max="255" />
-            </div>
-            <div>
-              <label>Dither</label>
-              <select id="logoDither">
-                <option value="none">None</option>
-                <option value="bayer">Bayer</option>
-              </select>
-            </div>
-          </div>
-          <small class="muted">Logo is converted to 1‑bit and embedded into ZPL (^GFA). Adjust width & threshold for clarity.</small>
-        </div>
-
-        <div class="section">
-          <label>Presets</label>
-          <div class="presets-row">
-            <input id="presetName" placeholder="Preset name (e.g., Sample‑Std)" />
-            <button type="button" class="ghost" id="savePresetBtn">Save</button>
-            <button type="button" class="ghost" id="deletePresetBtn">Delete</button>
-          </div>
-          <div class="presets">
-            <select id="presetSelect"></select>
-            <button type="button" class="ghost" id="loadPresetBtn">Load</button>
-          </div>
-        </div>
-
-        <button class="btn" id="printBtn" type="submit">🖨️ Print Label</button>
-      </form>
+  <button class="btn" id="printBtn" type="submit">🖨️ Print Label</button>
+</form>
     </div>
 
     <!-- RIGHT: Preview -->
@@ -694,3 +695,4 @@
   </script>
 </body>
 </html>
+
