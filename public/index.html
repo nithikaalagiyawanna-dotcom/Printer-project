@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>2x1 Label Printer (ZD-230)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 20px auto; }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input, select, textarea { width:100%; padding:8px; font-size:16px; }
+    .row { display:flex; gap:10px; }
+    .row > div { flex: 1; }
+    button { margin-top:16px; padding:10px 16px; font-size:16px; }
+    small { color:#666; }
+  </style>
+</head>
+<body>
+  <h1>Print 2×1″ Labels (ZD‑230)</h1>
+  <form method="post" action="/print">
+    <label>Sample Name
+      <input name="sampleName" placeholder="e.g., Sample A-001" required />
+    </label>
+
+    <label>Price (or any second line)
+      <input name="price" placeholder="e.g., Rs. 250" />
+      <small>Use ASCII symbols (e.g., Rs., $, %, /, -).</small>
+    </label>
+
+    <label>Notes (optional)
+      <input name="notes" placeholder="e.g., Lot 12 / 07-Feb-2026" />
+    </label>
+
+    <div class="row">
+      <div>
+        <label>Barcode Value (optional)
+          <input name="barcode" placeholder="e.g., 123456789012" />
+        </label>
+      </div>
+      <div>
+        <label>Barcode Type</label>
+        <select name="barcodeType">
+          <option value="code128">Code128</option>
+          <option value="qr">QR Code</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Main Font Size</label>
+        <input name="fontMain" type="number" value="28" min="12" max="60" />
+      </div>
+      <div>
+        <label>Small Font Size</label>
+        <input name="fontSmall" type="number" value="22" min="10" max="40" />
+      </div>
+      <div>
+        <label>Rotate</label>
+        <select name="rotate">
+          <option value="N">0° (Normal)</option>
+          <option value="R">90°</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit">Print Label</button>
+  </form>
+</body>
+</html>
