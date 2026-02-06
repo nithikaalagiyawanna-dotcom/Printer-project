@@ -2,68 +2,695 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>2x1 Label Printer (ZD-230)</title>
+  <title>2×1 Label Printer (ZD‑230)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 20px auto; }
-    label { display:block; margin-top:12px; font-weight:600; }
-    input, select, textarea { width:100%; padding:8px; font-size:16px; }
-    .row { display:flex; gap:10px; }
-    .row > div { flex: 1; }
-    button { margin-top:16px; padding:10px 16px; font-size:16px; }
-    small { color:#666; }
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #16181d;
+      --muted: #6b7280;
+      --primary: #0b74ff;
+      --primary-600: #075ed0;
+      --border: #e5e7eb;
+      --input: #fafafa;
+      --ok: #10b981;
+      --err: #ef4444;
+      --shadow: 0 8px 28px rgba(0,0,0,0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0f14;
+        --card: #121820;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --primary: #3b82f6;
+        --primary-600: #2563eb;
+        --border: #1f2937;
+        --input: #0e141c;
+        --shadow: 0 8px 28px rgba(0,0,0,0.5);
+      }
+    }
+    body.dark {
+      --bg: #0b0f14;
+      --card: #121820;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --primary: #3b82f6;
+      --primary-600: #2563eb;
+      --border: #1f2937;
+      --input: #0e141c;
+      --shadow: 0 8px 28px rgba(0,0,0,0.5);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 980px;
+      margin: 20px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px dashed var(--border);
+      margin: 12px 0 16px 0;
+      padding-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    label { font-weight: 600; display: block; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      background: var(--input);
+      color: var(--text);
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .section + .section { margin-top: 16px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      margin-top: 18px;
+      font-size: 16px;
+      font-weight: 700;
+      border: 0;
+      border-radius: 12px;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--primary-600); }
+
+    .toolbar {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .ghost {
+      background: transparent; border: 1px solid var(--border); color: var(--text);
+      padding: 10px 12px; border-radius: 10px; cursor: pointer;
+    }
+
+    .toast {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 20px; min-width: 280px; max-width: 90vw;
+      padding: 12px 16px; border-radius: 12px;
+      color: #fff; font-weight: 600; box-shadow: var(--shadow);
+      display: none;
+    }
+    .toast.ok { background: var(--ok); }
+    .toast.err { background: var(--err); }
+
+    /* Preview area */
+    .preview-wrap { display: grid; gap: 16px; }
+    .preview-header { display: flex; justify-content: space-between; align-items: center; }
+    canvas { background: #fff; border: 1px dashed var(--border); border-radius: 12px; width: 100%; height: auto; }
+
+    /* Presets */
+    .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .presets-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+    .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); }
+
+    /* Dark mode toggle */
+    .toggle {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+      user-select: none; border: 1px solid var(--border); border-radius: 999px;
+      padding: 6px 10px; color: var(--text);
+    }
+
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
+
 <body>
-  <h1>Print 2×1″ Labels (ZD‑230)</h1>
-  <form method="post" action="/print">
-    <label>Sample Name
-      <input name="sampleName" placeholder="e.g., Sample A-001" required />
-    </label>
+  <div class="container">
+    <!-- LEFT: Form -->
+    <div class="card">
+      <header>
+        <h1>Print 2×1″ Labels</h1>
+        <div class="toolbar">
+          <span class="chip">203 dpi • 406×203 dots</span>
+          <button id="themeBtn" class="toggle" type="button" title="Toggle dark mode">🌙 Dark</button>
+        </div>
+      </header>
 
-    <label>Price (or any second line)
-      <input name="price" placeholder="e.g., Rs. 250" />
-      <small>Use ASCII symbols (e.g., Rs., $, %, /, -).</small>
-    </label>
-
-    <label>Notes (optional)
-      <input name="notes" placeholder="e.g., Lot 12 / 07-Feb-2026" />
-    </label>
-
-    <div class="row">
-      <div>
-        <label>Barcode Value (optional)
-          <input name="barcode" placeholder="e.g., 123456789012" />
-        </label>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="sample">Sample</button>
+        <button class="tab-btn" data-tab="price">Price</button>
+        <button class="tab-btn" data-tab="custom">Custom</button>
       </div>
-      <div>
-        <label>Barcode Type</label>
-        <select name="barcodeType">
-          <option value="code128">Code128</option>
-          <option value="qr">QR Code</option>
-        </select>
-      </div>
+
+      <form id="labelForm" method="post" action="/print" autocomplete="off">
+        <!-- Hidden fields for logo ZPL image -->
+        <input type="hidden" name="logoHex" id="logoHex" />
+        <input type="hidden" name="logoW"   id="logoW" />
+        <input type="hidden" name="logoH"   id="logoH" />
+
+        <div class="section" id="sec-basic">
+          <label>Sample Name</label>
+          <input name="sampleName" id="sampleName" placeholder="e.g., Sample A‑001" required />
+
+          <div class="section">
+            <label>Price (or 2nd Line)</label>
+            <input name="price" id="price" placeholder="e.g., Rs. 250" />
+            <small class="muted">ASCII symbols supported: Rs., $, %, /, -</small>
+          </div>
+
+          <div class="section">
+            <label>Notes (optional)</label>
+            <input name="notes" id="notes" placeholder="e.g., Lot 12 / 07‑Feb‑2026" />
+          </div>
+        </div>
+
+        <div class="section grid-2">
+          <div>
+            <label>Barcode Value (optional)</label>
+            <input name="barcode" id="barcode" placeholder="e.g., 123456789012" />
+          </div>
+          <div>
+            <label>Barcode Type</label>
+            <select name="barcodeType" id="barcodeType">
+              <option value="code128">Code128</option>
+              <option value="qr">QR Code</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section grid-3">
+          <div>
+            <label>Main Font</label>
+            <input name="fontMain" id="fontMain" type="number" value="28" min="12" max="60" />
+          </div>
+          <div>
+            <label>Small Font</label>
+            <input name="fontSmall" id="fontSmall" type="number" value="22" min="10" max="40" />
+          </div>
+          <div>
+            <label>Rotate</label>
+            <select name="rotate" id="rotate">
+              <option value="N">0°</option>
+              <option value="R">90°</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <label>Logo (optional)</label>
+          <div class="grid-2">
+            <input type="file" id="logoFile" accept="image/*" />
+            <div class="grid-2">
+              <div>
+                <label>Logo X (dots)</label>
+                <input id="logoX" type="number" value="300" min="0" max="406" />
+              </div>
+              <div>
+                <label>Logo Y (dots)</label>
+                <input id="logoY" type="number" value="10" min="0" max="203" />
+              </div>
+            </div>
+          </div>
+          <div class="grid-3" style="margin-top:10px;">
+            <div>
+              <label>Logo Width (dots)</label>
+              <input id="logoWidthDots" type="number" value="80" min="8" max="406" />
+            </div>
+            <div>
+              <label>Threshold</label>
+              <input id="logoThreshold" type="number" value="180" min="0" max="255" />
+            </div>
+            <div>
+              <label>Dither</label>
+              <select id="logoDither">
+                <option value="none">None</option>
+                <option value="bayer">Bayer</option>
+              </select>
+            </div>
+          </div>
+          <small class="muted">Logo is converted to 1‑bit and embedded into ZPL (^GFA). Adjust width & threshold for clarity.</small>
+        </div>
+
+        <div class="section">
+          <label>Presets</label>
+          <div class="presets-row">
+            <input id="presetName" placeholder="Preset name (e.g., Sample‑Std)" />
+            <button type="button" class="ghost" id="savePresetBtn">Save</button>
+            <button type="button" class="ghost" id="deletePresetBtn">Delete</button>
+          </div>
+          <div class="presets">
+            <select id="presetSelect"></select>
+            <button type="button" class="ghost" id="loadPresetBtn">Load</button>
+          </div>
+        </div>
+
+        <button class="btn" id="printBtn" type="submit">🖨️ Print Label</button>
+      </form>
     </div>
 
-    <div class="row">
-      <div>
-        <label>Main Font Size</label>
-        <input name="fontMain" type="number" value="28" min="12" max="60" />
-      </div>
-      <div>
-        <label>Small Font Size</label>
-        <input name="fontSmall" type="number" value="22" min="10" max="40" />
-      </div>
-      <div>
-        <label>Rotate</label>
-        <select name="rotate">
-          <option value="N">0° (Normal)</option>
-          <option value="R">90°</option>
-        </select>
+    <!-- RIGHT: Preview -->
+    <div class="card">
+      <div class="preview-wrap">
+        <div class="preview-header">
+          <strong>Preview (approximate)</strong>
+          <span class="chip">2.00″ × 1.00″ • 406×203 dots</span>
+        </div>
+        <canvas id="preview" width="406" height="203" aria-label="Label preview"></canvas>
+        <small class="muted">Preview is a visual approximation; the printer renders the actual barcode/QR in ZPL.</small>
       </div>
     </div>
+  </div>
 
-    <button type="submit">Print Label</button>
-  </form>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // ------------------------------
+    // Dark mode toggle
+    // ------------------------------
+    const themeBtn = document.getElementById('themeBtn');
+    const persistedTheme = localStorage.getItem('theme');
+    if (persistedTheme === 'dark') document.body.classList.add('dark');
+    themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // ------------------------------
+    // Tabs logic (Sample / Price / Custom)
+    // ------------------------------
+    const tabs = document.querySelectorAll('.tab-btn');
+    function setTab(name) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      // Prefill simple defaults per tab (you can customize these)
+      if (name === 'sample') {
+        document.getElementById('sampleName').value = 'Sample A‑001';
+        document.getElementById('price').value = 'Rs. 250';
+        document.getElementById('notes').value = 'Lot 12 / 07‑Feb‑2026';
+        document.getElementById('barcode').value = '123456789012';
+        document.getElementById('barcodeType').value = 'code128';
+      } else if (name === 'price') {
+        document.getElementById('sampleName').value = 'Item‑01';
+        document.getElementById('price').value = 'Rs. 399';
+        document.getElementById('notes').value = '';
+        document.getElementById('barcode').value = '';
+        document.getElementById('barcodeType').value = 'code128';
+      } else {
+        // Custom: leave user entries as is
+      }
+      drawPreview();
+    }
+    tabs.forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+    setTab('sample');
+
+    // ------------------------------
+    // Presets via localStorage
+    // ------------------------------
+    const PRESET_KEY = 'zd230_presets';
+    const presetSelect = document.getElementById('presetSelect');
+    const presetName = document.getElementById('presetName');
+    const savePresetBtn = document.getElementById('savePresetBtn');
+    const deletePresetBtn = document.getElementById('deletePresetBtn');
+    const loadPresetBtn = document.getElementById('loadPresetBtn');
+
+    function getFormData() {
+      return {
+        sampleName: sampleName.value,
+        price: price.value,
+        notes: notes.value,
+        barcode: barcode.value,
+        barcodeType: barcodeType.value,
+        fontMain: fontMain.value,
+        fontSmall: fontSmall.value,
+        rotate: rotate.value,
+        logoHex: logoHex.value,
+        logoW: logoW.value,
+        logoH: logoH.value,
+        logoX: document.getElementById('logoX').value,
+        logoY: document.getElementById('logoY').value,
+        logoWidthDots: document.getElementById('logoWidthDots').value,
+        logoThreshold: document.getElementById('logoThreshold').value,
+        logoDither: document.getElementById('logoDither').value
+      };
+    }
+    function setFormData(d) {
+      sampleName.value = d.sampleName || '';
+      price.value = d.price || '';
+      notes.value = d.notes || '';
+      barcode.value = d.barcode || '';
+      barcodeType.value = d.barcodeType || 'code128';
+      fontMain.value = d.fontMain || 28;
+      fontSmall.value = d.fontSmall || 22;
+      rotate.value = d.rotate || 'N';
+      logoHex.value = d.logoHex || '';
+      logoW.value = d.logoW || '';
+      logoH.value = d.logoH || '';
+      document.getElementById('logoX').value = d.logoX || 300;
+      document.getElementById('logoY').value = d.logoY || 10;
+      document.getElementById('logoWidthDots').value = d.logoWidthDots || 80;
+      document.getElementById('logoThreshold').value = d.logoThreshold || 180;
+      document.getElementById('logoDither').value = d.logoDither || 'none';
+      drawPreview();
+    }
+    function loadPresets() {
+      presetSelect.innerHTML = '';
+      const store = JSON.parse(localStorage.getItem(PRESET_KEY) || '{}');
+      Object.keys(store).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        presetSelect.appendChild(opt);
+      });
+    }
+    savePresetBtn.addEventListener('click', () => {
+      const name = (presetName.value || '').trim();
+      if (!name) return toast('Enter preset name', true);
+      const store = JSON.parse(localStorage.getItem(PRESET_KEY) || '{}');
+      store[name] = getFormData();
+      localStorage.setItem(PRESET_KEY, JSON.stringify(store));
+      loadPresets();
+      presetSelect.value = name;
+      toast('Preset saved ✔');
+    });
+    deletePresetBtn.addEventListener('click', () => {
+      const name = presetSelect.value;
+      if (!name) return toast('Select a preset to delete', true);
+      const store = JSON.parse(localStorage.getItem(PRESET_KEY) || '{}');
+      delete store[name];
+      localStorage.setItem(PRESET_KEY, JSON.stringify(store));
+      loadPresets();
+      toast('Preset deleted');
+    });
+    loadPresetBtn.addEventListener('click', () => {
+      const name = presetSelect.value;
+      if (!name) return toast('Select a preset to load', true);
+      const store = JSON.parse(localStorage.getItem(PRESET_KEY) || '{}');
+      setFormData(store[name] || {});
+      toast('Preset loaded');
+    });
+    loadPresets();
+
+    // ------------------------------
+    // Logo upload → 1‑bit → ZPL ^GFA
+    // ------------------------------
+    const logoFile = document.getElementById('logoFile');
+    const logoWidthDots = document.getElementById('logoWidthDots');
+    const logoThreshold = document.getElementById('logoThreshold');
+    const logoDither = document.getElementById('logoDither');
+
+    logoFile.addEventListener('change', () => processLogo());
+    logoWidthDots.addEventListener('input', () => processLogo(true));
+    logoThreshold.addEventListener('input', () => processLogo(true));
+    logoDither.addEventListener('change', () => processLogo(true));
+
+    async function processLogo(reuseFile = false) {
+      if (!reuseFile && (!logoFile.files || !logoFile.files[0])) {
+        // No file
+        logoHex.value = ''; logoW.value = ''; logoH.value = '';
+        drawPreview(); return;
+      }
+      const img = await fileToImage(logoFile.files[0]);
+      const width = Math.min(parseInt(logoWidthDots.value || '80', 10), 406);
+      const scale = width / img.width;
+      const height = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Get grayscale
+      const data = ctx.getImageData(0, 0, width, height);
+      const thr = parseInt(logoThreshold.value || '180', 10);
+
+      // Optional Bayer ordered dithering (small 4x4 matrix)
+      const bayer = [
+        [  15, 135,  45, 165 ],
+        [ 195,  75, 225, 105 ],
+        [  60, 180,  30, 150 ],
+        [ 240, 120, 210,  90 ]
+      ];
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          const r = data.data[i], g = data.data[i+1], b = data.data[i+2];
+          const gray = 0.299*r + 0.587*g + 0.114*b;
+          let t = thr;
+          if (logoDither.value === 'bayer') {
+            t = (thr - 128) + bayer[y % 4][x % 4]; // shift threshold by bayer
+          }
+          const v = gray < t ? 0 : 255; // 0 = black pixel
+          data.data[i] = data.data[i+1] = data.data[i+2] = v;
+          data.data[i+3] = 255;
+        }
+      }
+      ctx.putImageData(data, 0, 0);
+
+      // Pack into 1-bit and hex for ^GFA
+      const bytesPerRow = Math.ceil(width / 8);
+      const totalBytes = bytesPerRow * height;
+      const bytes = new Uint8Array(totalBytes);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          const white = data.data[i] > 128; // 255 white, 0 black
+          if (!white) { // black pixel -> bit 1
+            const byteIndex = y * bytesPerRow + (x >> 3);
+            const bit = 7 - (x & 7);
+            bytes[byteIndex] |= (1 << bit);
+          }
+        }
+      }
+      // Convert to ASCII HEX
+      let hex = '';
+      const hexMap = '0123456789ABCDEF';
+      for (let i = 0; i < bytes.length; i++) {
+        hex += hexMap[(bytes[i] >> 4) & 0x0F] + hexMap[bytes[i] & 0x0F];
+      }
+
+      // Persist for server
+      logoHex.value = hex;
+      logoW.value = width;
+      logoH.value = height;
+
+      drawPreview(canvas); // re-use processed image for preview
+    }
+
+    function fileToImage(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        const url = URL.createObjectURL(file);
+        img.src = url;
+      });
+    }
+
+    // ------------------------------
+    // Real-time preview (approximate)
+    // ------------------------------
+    const preview = document.getElementById('preview');
+    const pctx = preview.getContext('2d');
+
+    // Simple placeholder barcode rendering (approximate)
+    function drawBarcodePlaceholder(ctx, x, y, w, h, text) {
+      ctx.save();
+      ctx.strokeStyle = '#222'; ctx.fillStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x, y, w, h);
+      // Fake bars
+      const seed = (text || 'CODE').length + 7;
+      let pos = 2;
+      while (pos < w - 2) {
+        const barW = 1 + ((pos + seed) % 5);
+        ctx.fillStyle = '#111';
+        ctx.fillRect(x + pos, y + 2, barW, h - 4);
+        pos += barW + 2;
+      }
+      ctx.fillStyle = '#111';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(text || 'BARCODE', x + w/2, y + h + 12);
+      ctx.restore();
+    }
+
+    function drawQRPlaceholder(ctx, x, y, s, text) {
+      ctx.save();
+      ctx.fillStyle = '#000';
+      // draw simple matrix of blocks
+      const cells = 21; // version 1 QR approx
+      const cell = Math.floor(s / cells);
+      for (let r = 0; r < cells; r++) {
+        for (let c = 0; c < cells; c++) {
+          const on = ((r * 31 + c * 17 + (text || '').length) % 3) === 0;
+          if (on) ctx.fillRect(x + c*cell, y + r*cell, cell, cell);
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawPreview(imgCanvas = null) {
+      // Clear
+      pctx.fillStyle = '#fff';
+      pctx.fillRect(0, 0, preview.width, preview.height);
+      pctx.fillStyle = '#111';
+      pctx.font = `${parseInt(fontMain.value || '28', 10)}px sans-serif`;
+      pctx.textAlign = 'left';
+
+      // Rotation note: preview ignores rotation for simplicity; printer will rotate via ZPL.
+      // Text lines
+      pctx.fillText(sampleName.value || '', 10, 26);
+      pctx.font = `${parseInt(fontSmall.value || '22', 10)}px sans-serif`;
+      pctx.fillText(price.value || '', 10, 60);
+      if (notes.value) pctx.fillText(notes.value, 10, 86);
+
+      // Barcode / QR placeholder
+      const bval = barcode.value.trim();
+      if (bval) {
+        if ((document.getElementById('barcodeType').value || 'code128') === 'qr') {
+          drawQRPlaceholder(pctx, 10, 100, 80, bval);
+        } else {
+          drawBarcodePlaceholder(pctx, 10, 100, 200, 50, bval);
+        }
+      }
+
+      // Logo (use already processed canvas if provided)
+      const lx = parseInt(document.getElementById('logoX').value || '300', 10);
+      const ly = parseInt(document.getElementById('logoY').value || '10', 10);
+      if (imgCanvas) {
+        pctx.drawImage(imgCanvas, lx, ly);
+      } else if (logoHex.value && logoW.value && logoH.value) {
+        // Reconstruct quick grayscale block from hex for preview
+        const w = parseInt(logoW.value, 10);
+        const h = parseInt(logoH.value, 10);
+        const bytesPerRow = Math.ceil(w / 8);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.createImageData(w, h);
+        // hex to bytes
+        const hex = logoHex.value;
+        const bytes = new Uint8Array(hex.length / 2);
+        for (let i = 0; i < bytes.length; i++) {
+          bytes[i] = parseInt(hex.substr(i*2,2),16);
+        }
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const byteIndex = y * bytesPerRow + (x >> 3);
+            const bit = 7 - (x & 7);
+            const on = (bytes[byteIndex] >> bit) & 1;
+            const idx = (y * w + x) * 4;
+            const v = on ? 0 : 255;
+            imgData.data[idx] = imgData.data[idx+1] = imgData.data[idx+2] = v;
+            imgData.data[idx+3] = 255;
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        pctx.drawImage(canvas, lx, ly);
+      }
+    }
+
+    // live preview bindings
+    ['sampleName','price','notes','barcode','barcodeType','fontMain','fontSmall','rotate','logoX','logoY'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => drawPreview());
+    });
+    drawPreview();
+
+    // ------------------------------
+    // Submit via fetch for better UX
+    // ------------------------------
+    const form = document.getElementById('labelForm');
+    const printBtn = document.getElementById('printBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      printBtn.disabled = true;
+      const original = printBtn.textContent;
+      printBtn.textContent = 'Printing…';
+
+      try {
+        const fd = new FormData(form);
+        // Add logo position (server uses these)
+        fd.append('logoX', document.getElementById('logoX').value);
+        fd.append('logoY', document.getElementById('logoY').value);
+
+        const res = await fetch(form.action, { method: 'POST', body: fd });
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || 'Failed');
+        toast('Label sent to printer ✔');
+      } catch (err) {
+        toast('Printing failed: ' + (err.message || err), true);
+      } finally {
+        printBtn.disabled = false;
+        printBtn.textContent = original;
+      }
+    });
+
+    // ------------------------------
+    // Toast helper
+    // ------------------------------
+    const toastEl = document.getElementById('toast');
+    let toastTimer = null;
+    function toast(msg, isErr=false) {
+      toastEl.textContent = msg;
+      toastEl.className = 'toast ' + (isErr ? 'err' : 'ok');
+      toastEl.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.style.display = 'none', 2600);
+    }
+  </script>
 </body>
 </html>
